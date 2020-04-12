@@ -1,4 +1,5 @@
-import { ThemeProvider, Heading, Flex, Grid, Box, theme, Button, useToast } from '@chakra-ui/core'
+import { Heading, Flex, Grid, Box, theme, Button, useToast, Icon, useToastOptions } from '@chakra-ui/core'
+import { ThemeProvider } from 'emotion-theming'
 import React, { useEffect, useState, FC } from 'react'
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth'
 import firebase from 'firebase'
@@ -17,7 +18,6 @@ const firebaseConfig = {
 const firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig)
 
 const Home: FC = () => {
-  const toast = useToast()
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [username, setUsername] = useState('')
 
@@ -30,21 +30,10 @@ const Home: FC = () => {
   })
 
   useEffect(() => {
-    if (toastTitleDesc.title && toastTitleDesc.description) {
-      const { title, description } = toastTitleDesc
-      toast({
-        position: 'bottom-left',
-        title: 'Account created.',
-        description: "We've created your account for you.",
-        status: 'success',
-        duration: 9000,
-        isClosable: true,
-      })
-    }
     return () => {
       unregisterAuthServer()
     }
-  }, [toastTitleDesc, toast])
+  }, [])
 
   // https://github.com/firebase/firebaseui-web-react
   const uiConfig = {
@@ -55,51 +44,51 @@ const Home: FC = () => {
     },
   }
 
-  // const ToastExample = () => {
-  //   const toast = useToast()
-  //   return (
-  //     <Button
-  //       onClick={() =>
-  //         toast({
-  //           position: 'bottom-left',
-  //           title: 'Account created.',
-  //           description: "We've created your account for you.",
-  //           status: 'success',
-  //           duration: 9000,
-  //           isClosable: true,
-  //         })
-  //       }>
-  //       Show Toast
-  //     </Button>
-  //   )
-  // }
+  const ToastExample = () => {
+    const toast = useToast()
+    return (
+      <Button
+        onClick={() =>
+          toast({
+            position: 'bottom-left',
+            title: 'Account created.',
+            description: "We've created your account for you.",
+            status: 'success',
+            duration: 9000,
+            isClosable: true,
+          })
+        }>
+        Show Toast
+      </Button>
+    )
+  }
 
-  const deleteCurrentUser = async () => {
+  const DeleteButton = () => {
+    const toast = useToast()
+    return (
+      <Button
+        onClick={() => {
+          deleteCurrentUser(toast)
+        }}>
+        delete
+      </Button>
+    )
+  }
+
+  const deleteCurrentUser = async (toast: (useToastOptions: useToastOptions) => void) => {
     try {
       await firebase.auth().currentUser.delete()
       toast({
-        title: 'Successfully Deleted the account',
+        title: 'Successfully deleted the account',
         description: 'Your account was deleted',
         status: 'success',
       })
     } catch (e) {
-      // setToastTitleDesc({ title: 'Failed to delete', description: 'assss' })
-      // toast({
-      //   title: 'Failed to delete the account',
-      //   description: 'aaaa',
-      //   duration: 9000,
-      //   isClosable: true,
-      //   status: 'error',
-      // })
       toast({
-        position: 'bottom-left',
-        title: 'Account created.',
-        description: "We've created your account for you.",
-        status: 'success',
-        duration: 9000,
-        isClosable: true,
+        title: 'Failed to delete the account',
+        description: e.message,
+        status: 'error',
       })
-      console.log('aieee')
     }
   }
 
@@ -112,10 +101,10 @@ const Home: FC = () => {
 
       <Flex direction='column'>
         <Box as='main'>
+          <Icon name='phone' />
           <Heading as='h1'>My Item List</Heading>
-          {/* <ToastExample /> */}
           {isSignedIn && <Flex>{username}</Flex>}
-          {isSignedIn && <Button onClick={() => deleteCurrentUser()}>delete</Button>}
+          {isSignedIn && <DeleteButton />}
           {isSignedIn ? 'signedIn' : 'Not signed in'}
 
           {!isSignedIn && <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />}
@@ -131,17 +120,6 @@ const Home: FC = () => {
           About: abc
         </Box>
       </Flex>
-      <div>
-        {/* <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>
-
-<script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-analytics.js"></script>
-
-<script>
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  firebase.analytics();
-</script> */}
-      </div>
     </ThemeProvider>
   )
 }
